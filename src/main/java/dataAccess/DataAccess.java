@@ -2,6 +2,9 @@
 package dataAccess;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -14,6 +17,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.persistence.TypedQuery;
+import javax.persistence.criteria.Path;
 
 import configuration.ConfigXML;
 import configuration.UtilDate;
@@ -34,27 +38,32 @@ public class DataAccess {
 
 	public DataAccess() {
 		if (c.isDatabaseInitialized()) {
-			String fileName = c.getDbFilename();
+		    String fileName = c.getDbFilename();
 
-			File fileToDelete = new File(fileName);
-			if (fileToDelete.delete()) {
-				File fileToDeleteTemp = new File(fileName + "$");
-				fileToDeleteTemp.delete();
+		    Path pathToDelete = (Path) Paths.get(fileName);
+		    try {
+		        Files.delete((java.nio.file.Path) pathToDelete);
 
-				logger.info("File deleted");
-			} else {
-				logger.info("Operation failed");
-			}
+		        Path tempPathToDelete = (Path) Paths.get(fileName + "$");
+		        Files.deleteIfExists((java.nio.file.Path) tempPathToDelete);
+
+		        logger.info("File deleted");
+		    } catch (IOException e) {
+		        logger.info("Operation failed: " + e.getMessage());
+		    }
 		}
+
 		open();
+
 		if (c.isDatabaseInitialized()) {
-			initializeDB();
+		    initializeDB();
 		}
 
-		logger.info("DataAccess created => isDatabaseLocal: " + c.isDatabaseLocal() + " isDatabaseInitialized: "
-				+ c.isDatabaseInitialized());
+		logger.info("DataAccess created => isDatabaseLocal: " + c.isDatabaseLocal()
+		        + " isDatabaseInitialized: " + c.isDatabaseInitialized());
 
 		close();
+
 
 	}
 	//This constructor is used to mock the DB
