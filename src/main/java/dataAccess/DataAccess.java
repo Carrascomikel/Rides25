@@ -1,4 +1,4 @@
-//Arocena paketee
+
 package dataAccess;
 
 import java.io.File;
@@ -12,6 +12,7 @@ import java.util.ResourceBundle;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.NoResultException;
 import javax.persistence.Persistence;
 import javax.persistence.TypedQuery;
 
@@ -104,12 +105,13 @@ public class DataAccess {
 
 			cal.set(2024, Calendar.APRIL, 20);
 			Date date4 = UtilDate.trim(cal.getTime());
-
-			driver1.addRide("Donostia", "Madrid", date2, 5, 20); //ride1
-			driver1.addRide("Irun", "Donostia", date2, 5, 2); //ride2
-			driver1.addRide("Madrid", "Donostia", date3, 5, 5); //ride3
-			driver1.addRide("Barcelona", "Madrid", date4, 0, 10); //ride4
-			driver2.addRide("Donostia", "Hondarribi", date1, 5, 3); //ride5
+			final String cM="Madrid";
+			final String donos="Donostia";
+			driver1.addRide(donos,cM, date2, 5, 20); //ride1
+			driver1.addRide("Irun", donos, date2, 5, 2); //ride2
+			driver1.addRide(cM,donos, date3, 5, 5); //ride3
+			driver1.addRide("Barcelona", cM, date4, 0, 10); //ride4
+			driver2.addRide("donos", "Hondarribi", date1, 5, 3); //ride5
 
 			Ride ride1 = driver1.getCreatedRides().get(0);
 			Ride ride2 = driver1.getCreatedRides().get(1);
@@ -122,26 +124,29 @@ public class DataAccess {
 			Booking book4 = new Booking(ride3, traveler1, 1);
 			Booking book3 = new Booking(ride2, traveler2, 2);
 			Booking book5 = new Booking(ride5, traveler1, 1);
-
-			book1.setStatus("Accepted");
+			
+			final String ap="Accepted";
+			book1.setStatus(ap);
 			book2.setStatus("Rejected");
-			book3.setStatus("Accepted");
-			book4.setStatus("Accepted");
-			book5.setStatus("Accepted");
+			book3.setStatus(ap);
+			book4.setStatus(ap);
+			book5.setStatus(ap);
 
 			db.persist(book1);
 			db.persist(book2);
 			db.persist(book3);
 			db.persist(book4);
 			db.persist(book5);
-
-			Movement m1 = new Movement(traveler1, "BookFreeze", 20);
-			Movement m2 = new Movement(traveler1, "BookFreeze", 40);
-			Movement m3 = new Movement(traveler1, "BookFreeze", 5);
-			Movement m4 = new Movement(traveler2, "BookFreeze", 4);
-			Movement m5 = new Movement(traveler1, "BookFreeze", 3);
-			Movement m6 = new Movement(driver1, "Deposit", 15);
-			Movement m7 = new Movement(traveler1, "Deposit", 168);
+			
+			final String bf="BookFreeze";
+			final String dep="Deposit";
+			Movement m1 = new Movement(traveler1,bf, 20);
+			Movement m2 = new Movement(traveler1,bf, 40);
+			Movement m3 = new Movement(traveler1,bf, 5);
+			Movement m4 = new Movement(traveler2,bf, 4);
+			Movement m5 = new Movement(traveler1,bf, 3);
+			Movement m6 = new Movement(driver1,dep, 15);
+			Movement m7 = new Movement(traveler1,dep, 168);
 			
 			db.persist(m6);
 			db.persist(m7);
@@ -340,7 +345,12 @@ public class DataAccess {
 	public User getUser(String erab) {
 		TypedQuery<User> query = db.createQuery("SELECT u FROM User u WHERE u.username = :username", User.class);
 		query.setParameter("username", erab);
-		return query.getSingleResult();
+		try {
+		    return query.getSingleResult();
+		} catch (NoResultException e) {
+		    return null;
+		}
+
 	}
 
 	public double getActualMoney(String erab) {
@@ -479,7 +489,6 @@ public class DataAccess {
 	}
 
 	public boolean gauzatuEragiketa(String username, double amount, boolean deposit) {
-		try {
 			db.getTransaction().begin();
 			User user = getUser(username);
 			if (user != null) {
@@ -488,7 +497,7 @@ public class DataAccess {
 					user.setMoney(currentMoney + amount);
 				} else {
 					if ((currentMoney - amount) < 0)
-						user.setMoney(0);
+						user.setMoney(0.0);
 					else
 						user.setMoney(currentMoney - amount);
 				}
@@ -498,11 +507,7 @@ public class DataAccess {
 			}
 			db.getTransaction().commit();
 			return false;
-		} catch (Exception e) {
-			e.printStackTrace();
-			db.getTransaction().rollback();
-			return false;
-		}
+		
 	}
 
 	public void addMovement(User user, String eragiketa, double amount) {
