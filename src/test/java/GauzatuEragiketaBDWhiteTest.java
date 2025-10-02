@@ -97,6 +97,8 @@ public class GauzatuEragiketaBDWhiteTest {
 		
 	}
 	@Test
+	//sut.gauzatuEragiketa: The user exists on the DB and the currentMoney is higher than the amount we want to cash out.
+	//The test must return true.
 	public void test4() {
 		String username="Maria";
 		String pass="Dolores";
