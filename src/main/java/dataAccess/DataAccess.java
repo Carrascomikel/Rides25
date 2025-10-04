@@ -345,10 +345,12 @@ public class DataAccess {
 	public User getUser(String erab) {
 		TypedQuery<User> query = db.createQuery("SELECT u FROM User u WHERE u.username = :username", User.class);
 		query.setParameter("username", erab);
-		try {
-		    return query.getSingleResult();
-		} catch (NoResultException e) {
-		    return null;
+		List<User> resultList=query.getResultList();
+		if(resultList.isEmpty()) {
+			return null;
+		}
+		else {
+			return resultList.get(0);
 		}
 
 	}

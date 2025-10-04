@@ -13,6 +13,25 @@
           <configuration>
                <testFailureIgnore>true</testFailureIgnore>
             </configuration>
+     </plugin>
+     <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>0.8.12</version>
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>prepare-agent</goal>
+                    </goals>
+                </execution>
+                <execution>
+                    <id>report</id>
+                    <phase>verify</phase>
+                    <goals>
+                        <goal>report</goal>
+                    </goals>
+                </execution>
+            </executions>
         </plugin>
    </plugins>
 </build>
@@ -25,8 +44,12 @@
 </repositories>
 
 <properties>
-    <maven.compiler.target>1.8</maven.compiler.target>
-    <maven.compiler.source>1.8</maven.compiler.source>
+   <maven.compiler.target>1.8</maven.compiler.target>
+	<maven.compiler.source>1.8</maven.compiler.source>
+	<sonar.organization>jarocena013</sonar.organization>
+	<sonar.host.url>https://sonarcloud.io</sonar.host.url>
+	<sonar.projectKey>jarocena013_rides25</sonar.projectKey>
+	<sonar.login>cb628c843c97bb48310c788d15a9009052caffc1</sonar.login>
 </properties>
 
 <!-- https://mvnrepository.com/artifact/junit/junit -->
