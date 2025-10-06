@@ -5,6 +5,7 @@ import java.util.Date;
 import configuration.ConfigXML;
 import domain.Driver;
 import domain.Ride;
+import domain.User;
 
 public class TestBusinessLogic {
 	TestDataAccess dbManagerTest;
@@ -63,7 +64,30 @@ public class TestBusinessLogic {
 			dbManagerTest.close();
 			return r;
 		}
+		public User getUser(String erab) {
+			dbManagerTest.open();
+			User u = dbManagerTest.getUser(erab);
+			dbManagerTest.close();
+			return u;
+		}
 		
+		public boolean gauzatuEragiketa(String username, double amount, boolean deposit) {
+			if (amount <= 0)
+				return false;
+			boolean ondo;
+			dbManagerTest.open();
+			ondo = dbManagerTest.gauzatuEragiketa(username, amount, deposit);
+			dbManagerTest.close();
+			return ondo;
+		}
+		public boolean bookRide(String username, Ride ride, int seats, double desk) {
+			boolean ondo;
+			dbManagerTest.open();
+			ondo = dbManagerTest.bookRide(username, ride, seats, desk);
+			dbManagerTest.close();
+			return ondo;
+		}
+
 
 
 }
