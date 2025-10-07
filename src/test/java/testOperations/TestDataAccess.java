@@ -1,9 +1,12 @@
 package testOperations;
 
+
+import java.util.logging.Logger;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ResourceBundle;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
@@ -19,6 +22,7 @@ import domain.Driver;
 import domain.Ride;
 import domain.Traveler;
 import domain.User;
+import exceptions.RideMustBeLaterThanTodayException;
 
 
 public class TestDataAccess {
@@ -27,7 +31,7 @@ public class TestDataAccess {
 
 	ConfigXML  c=ConfigXML.getInstance();
 
-
+	Logger logger = Logger.getLogger(getClass().getName());
 	public TestDataAccess()  {
 		
 		System.out.println("TestDataAccess created");
@@ -233,6 +237,135 @@ public class TestDataAccess {
 			return null;
 
 		}
+		public boolean removeTraveler(String name) {
+			System.out.println(">> TestDataAccess: removeTraveler");
+			Traveler d = db.find(Traveler.class, name);
+			if (d!=null) {
+				db.getTransaction().begin();
+				db.remove(d);
+				db.getTransaction().commit();
+				return true;
+			} else 
+			return false;
+	    }
+		public Ride createRide(String from, String to, Date date, int nPlaces, float price, String driverName)
+				 {
+			logger.info(
+					">> DataAccess: createRide=> from= " + from + " to= " + to + " driver=" + driverName + " date " + date);
+			if (driverName==null) return null;
+			try {
+				if (new Date().compareTo(date) > 0) {
+					logger.info("ppppp");
+					
+				}
+
+				db.getTransaction().begin();
+				Driver driver = db.find(Driver.class, driverName);
+				if (driver.doesRideExists(from, to, date)) {
+					db.getTransaction().commit();
+					
+				}
+				Ride ride = driver.addRide(from, to, date, nPlaces, price);
+				// next instruction can be obviated
+				db.persist(driver);
+				db.getTransaction().commit();
+
+				return ride;
+			} catch (NullPointerException e) {
+				// TODO Auto-generated catch block
+				return null;
+			}
+			
+		}
+		
+		public boolean bookRide(String username, Ride ride, int seats, double desk) {
+			try {
+				db.getTransaction().begin();
+
+				Traveler traveler = getTraveler(username);
+				if (traveler == null) {
+					return false;
+				}
+
+				if (ride.getnPlaces() < seats) {
+					return false;
+				}
+
+				double ridePriceDesk = (ride.getPrice() - desk) * seats;
+				double availableBalance = traveler.getMoney();
+				if (availableBalance < ridePriceDesk) {
+					return false;
+				}
+
+				Booking booking = new Booking(ride, traveler, seats);
+				booking.setTraveler(traveler);
+				booking.setDeskontua(desk);
+				db.persist(booking);
+
+				ride.setnPlaces(ride.getnPlaces() - seats);
+				traveler.addBookedRide(booking);
+				traveler.setMoney(availableBalance - ridePriceDesk);
+				traveler.setIzoztatutakoDirua(traveler.getIzoztatutakoDirua() + ridePriceDesk);
+				db.merge(ride);
+				db.merge(traveler);
+				db.getTransaction().commit();
+				return true;
+			} catch (Exception e) {
+				e.printStackTrace();
+				db.getTransaction().rollback();
+				return false;
+			}
+		}
+
+		
+	
+		public boolean gauzatuEragiketa(String username, double amount, boolean deposit) {
+			try {
+				db.getTransaction().begin();
+				User user = getUser(username);
+				if (user != null) {
+					double currentMoney = user.getMoney();
+					if (deposit) {
+						user.setMoney(currentMoney + amount);
+					} else {
+						if ((currentMoney - amount) < 0)
+							user.setMoney(0);
+						else
+							user.setMoney(currentMoney - amount);
+					}
+					db.merge(user);
+					db.getTransaction().commit();
+					return true;
+				}
+				db.getTransaction().commit();
+				return false;
+			} catch (Exception e) {
+				e.printStackTrace();
+				db.getTransaction().rollback();
+				return false;
+			}
+		}
+	
+	
+	public void removeBook(String name, String from, String to, Date date ) {
+		System.out.println(">> TestDataAccess: removeRide");
+		Driver d = db.find(Driver.class, name);
+			db.getTransaction().begin();
+			Ride r= d.removeRide(from, to, date);
+			
+			List<Booking>b=r.getBookings();
+			for(Booking bo: b) {
+				r.getBookings().remove(bo);
+			}
+			db.getTransaction().commit();
+			System.out.println("created rides" +d.getCreatedRides());
+			
+		
+		
+			
+			
+			
+	}
 
 
 		

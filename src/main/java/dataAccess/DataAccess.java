@@ -632,10 +632,7 @@ public class DataAccess {
 	public List<Booking> getBookingFromDriver(String username) {
 		try {
 			db.getTransaction().begin();
-			TypedQuery<Driver> query = db.createQuery("SELECT d FROM Driver d WHERE d.username = :username",
-					Driver.class);
-			query.setParameter("username", username);
-			Driver driver = query.getSingleResult();
+			Driver driver = db.find(Driver.class, username);
 
 			List<Ride> rides = driver.getCreatedRides();
 			List<Booking> bookings = new ArrayList<>();
