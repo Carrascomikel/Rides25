@@ -182,14 +182,14 @@ public class CreateRideGUI extends JFrame {
 
 					int monthAnt = calendarAnt.get(Calendar.MONTH);
 					int monthAct = calendarAct.get(Calendar.MONTH);
-					if (monthAct != monthAnt) {
-						if (monthAct == monthAnt + 2) {
+					if (monthAct != monthAnt && monthAct==monthAnt+2) {
+					
 							// Si en JCalendar está 30 de enero y se avanza al mes siguiente, devolverá 2 de
 							// marzo (se toma como equivalente a 30 de febrero)
 							// Con este código se dejará como 1 de febrero en el JCalendar
 							calendarAct.set(Calendar.MONTH, monthAnt + 1);
 							calendarAct.set(Calendar.DAY_OF_MONTH, 1);
-						}
+						
 
 						jCalendar.setCalendar(calendarAct);
 
@@ -226,11 +226,10 @@ public class CreateRideGUI extends JFrame {
 						UtilDate.trim(jCalendar.getDate()), inputSeats, price, driver.getUsername());
 				jLabelMsg.setText(ResourceBundle.getBundle("Etiquetas").getString("CreateRideGUI.RideCreated"));
 
-			} catch (RideMustBeLaterThanTodayException e1) {
+			} catch (RideMustBeLaterThanTodayException |RideAlreadyExistException e1) {
 				jLabelMsg.setText(e1.getMessage());
-			} catch (RideAlreadyExistException e1) {
 				jLabelMsg.setText(e1.getMessage());
-			}
+			} 
 
 	}
 

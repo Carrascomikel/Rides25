@@ -2,6 +2,10 @@
 package dataAccess;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -16,12 +20,13 @@ import javax.persistence.NoResultException;
 import javax.persistence.Persistence;
 import javax.persistence.TypedQuery;
 
+import java.util.logging.Logger;
+
 import configuration.ConfigXML;
 import configuration.UtilDate;
 import domain.*;
 import exceptions.RideAlreadyExistException;
 import exceptions.RideMustBeLaterThanTodayException;
-
 /**
  * It implements the data access to the objectDb database
  */
@@ -32,19 +37,19 @@ public class DataAccess {
 	ConfigXML c = ConfigXML.getInstance();
 	
 	private String adminPass="admin";
-
+	Logger logger=Logger.getLogger(getClass().getName());
+	
 	public DataAccess() {
 		if (c.isDatabaseInitialized()) {
 			String fileName = c.getDbFilename();
-
-			File fileToDelete = new File(fileName);
-			if (fileToDelete.delete()) {
-				File fileToDeleteTemp = new File(fileName + "$");
-				fileToDeleteTemp.delete();
-
-				System.out.println("File deleted");
-			} else {
-				System.out.println("Operation failed");
+			Path pathToDelete=(Path) Paths.get(fileName);
+			try {
+				Files.delete((java.nio.file.Path)pathToDelete);
+				Path tempPathToDelete=(Path)Paths.get(fileName+"$");
+				Files.deleteIfExists((java.nio.file.Path)tempPathToDelete);
+				 logger.info("File deleted");
+			}catch(IOException e) {
+				logger.info("Operation failed:"+e.getMessage());
 			}
 		}
 		open();
@@ -52,8 +57,8 @@ public class DataAccess {
 			initializeDB();
 		}
 
-		System.out.println("DataAccess created => isDatabaseLocal: " + c.isDatabaseLocal() + " isDatabaseInitialized: "
-				+ c.isDatabaseInitialized());
+		logger.info("DataAccess created => isDatabaseLocal: " + c.isDatabaseLocal()
+        + " isDatabaseInitialized: " + c.isDatabaseInitialized());
 
 		close();
 
@@ -180,8 +185,7 @@ public class DataAccess {
 			db.persist(dis);
 
 			db.getTransaction().commit();
-			System.out.println("Db initialized");
-
+			logger.info("Db initialized");
 		} catch (Exception e) {
 			e.printStackTrace();
 			db.getTransaction().rollback();
@@ -232,12 +236,12 @@ public class DataAccess {
 	 */
 	public Ride createRide(String from, String to, Date date, int nPlaces, float price, String driverName)
 			throws RideAlreadyExistException, RideMustBeLaterThanTodayException {
-		System.out.println(
+		logger.info(
 				">> DataAccess: createRide=> from= " + from + " to= " + to + " driver=" + driverName + " date " + date);
 		if (driverName==null) return null;
 		try {
 			if (new Date().compareTo(date) > 0) {
-				System.out.println("ppppp");
+				logger.info("ppppp");
 				throw new RideMustBeLaterThanTodayException(
 						ResourceBundle.getBundle("Etiquetas").getString("CreateRideGUI.ErrorRideMustBeLaterThanToday"));
 			}
@@ -272,7 +276,7 @@ public class DataAccess {
 	 * @return collection of rides
 	 */
 	public List<Ride> getRides(String from, String to, Date date) {
-		System.out.println(">> DataAccess: getActiveRides=> from= " + from + " to= " + to + " date " + date);
+		logger.info(">> DataAccess: getActiveRides=> from= " + from + " to= " + to + " date " + date);
 
 		List<Ride> res = new ArrayList<>();
 		TypedQuery<Ride> query = db.createQuery(
@@ -297,7 +301,7 @@ public class DataAccess {
 	 * @return collection of rides
 	 */
 	public List<Date> getThisMonthDatesWithRides(String from, String to, Date date) {
-		System.out.println(">> DataAccess: getThisMonthActiveRideDates");
+		logger.info(">> DataAccess: getThisMonthActiveRideDates");
 
 		List<Date> res = new ArrayList<>();
 
@@ -333,13 +337,13 @@ public class DataAccess {
 					"objectdb://" + c.getDatabaseNode() + ":" + c.getDatabasePort() + "/" + fileName, properties);
 			db = emf.createEntityManager();
 		}
-		System.out.println("DataAccess opened => isDatabaseLocal: " + c.isDatabaseLocal());
+		logger.info("DataAccess opened => isDatabaseLocal: " + c.isDatabaseLocal());
 
 	}
 
 	public void close() {
 		db.close();
-		System.out.println("DataAcess closed");
+		logger.info("DataAcess closed");
 	}
 
 	public User getUser(String erab) {

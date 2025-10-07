@@ -27,10 +27,10 @@ public class KotxeakKudeatuGUI extends JFrame {
 	}
 
 	public KotxeakKudeatuGUI(String username) {
-
+		final String etik="Etiquetas";
 		setBussinessLogic(DriverGUI.getBusinessLogic());
 		this.setSize(new Dimension(600, 537));
-		this.setTitle(ResourceBundle.getBundle("Etiquetas").getString("KotxeaGUI.CarManager"));
+		this.setTitle(ResourceBundle.getBundle(etik).getString("KotxeaGUI.CarManager"));
 		this.setResizable(false);
 		getContentPane().setLayout(new BorderLayout(0, 0));
 
@@ -45,9 +45,9 @@ public class KotxeakKudeatuGUI extends JFrame {
 		taulaCars.setRowSelectionAllowed(true);
 		taulaCars.setDefaultEditor(Object.class, null);
 		
-		String[] columnNames = { ResourceBundle.getBundle("Etiquetas").getString("KotxeaGUI.Matrikula"),
-				ResourceBundle.getBundle("Etiquetas").getString("KotxeaGUI.Modeloa"),
-				ResourceBundle.getBundle("Etiquetas").getString("KotxeaGUI.Eserlekuak") };
+		String[] columnNames = { ResourceBundle.getBundle(etik).getString("KotxeaGUI.Matrikula"),
+				ResourceBundle.getBundle(etik).getString("KotxeaGUI.Modeloa"),
+				ResourceBundle.getBundle(etik).getString("KotxeaGUI.Eserlekuak") };
 		DefaultTableModel model = new DefaultTableModel(columnNames, 0);
 
 		if (carList != null) {
@@ -61,28 +61,28 @@ public class KotxeakKudeatuGUI extends JFrame {
 		lblErrorea = new JLabel();
 		getContentPane().add(lblErrorea, BorderLayout.CENTER);
 
-		jButtonEzabatu = new JButton(ResourceBundle.getBundle("Etiquetas").getString("KotxeaGUI.KotxeaEzabatu"));
+		jButtonEzabatu = new JButton(ResourceBundle.getBundle(etik).getString("KotxeaGUI.KotxeaEzabatu"));
 		jButtonEzabatu.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				int pos = taulaCars.getSelectedRow();
 				if (pos != -1) {
 					Car car = carList.get(pos);
 					appFacadeInterface.deleteCar(car);
-					lblErrorea.setText(ResourceBundle.getBundle("Etiquetas").getString("KotxeaGUI.KotxeaEzabatu"));
+					lblErrorea.setText(ResourceBundle.getBundle(etik).getString("KotxeaGUI.KotxeaEzabatu"));
 					lblErrorea.setForeground(Color.BLACK);
 					model.removeRow(pos);
 				} else {
-					lblErrorea.setText(ResourceBundle.getBundle("Etiquetas").getString("KotxeaGUI.Select"));
+					lblErrorea.setText(ResourceBundle.getBundle(etik).getString("KotxeaGUI.Select"));
 					lblErrorea.setForeground(Color.RED);
 				}
 			}
 		});
 		getContentPane().add(jButtonEzabatu, BorderLayout.WEST);
 
-		jButtonGehitu = new JButton(ResourceBundle.getBundle("Etiquetas").getString("KotxeaGUI.KotxeaGehitu"));
+		jButtonGehitu = new JButton(ResourceBundle.getBundle(etik).getString("KotxeaGUI.KotxeaGehitu"));
 		jButtonGehitu.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				lblErrorea.setText(ResourceBundle.getBundle("Etiquetas").getString("KotxeaGUI.Eguneratu"));
+				lblErrorea.setText(ResourceBundle.getBundle(etik).getString("KotxeaGUI.Eguneratu"));
 				lblErrorea.setForeground(Color.BLACK);
 				JFrame a = new KotxeaGehituGUI(username);
 				a.setVisible(true);
@@ -90,7 +90,7 @@ public class KotxeakKudeatuGUI extends JFrame {
 		});
 		getContentPane().add(jButtonGehitu, BorderLayout.EAST);
 
-		jButtonClose = new JButton(ResourceBundle.getBundle("Etiquetas").getString("EgoeraGUI.Close"));
+		jButtonClose = new JButton(ResourceBundle.getBundle(etik).getString("EgoeraGUI.Close"));
 		jButtonClose.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				jButtonClose_actionPerformed(e);

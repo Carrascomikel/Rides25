@@ -23,7 +23,7 @@ public class ConfigXML {
 
 	private String businessLogicName;
 	
-	private static String dbFilename;
+	private String dbFilename;
 
 	//Two possible values: true (if the database must be initialized ) or false (in other case)
 	private boolean isDatabaseInitialized;
