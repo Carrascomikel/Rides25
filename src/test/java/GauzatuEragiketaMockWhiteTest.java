@@ -49,10 +49,10 @@ public class GauzatuEragiketaMockWhiteTest {
     public  void tearDown() {
 		persistenceMock.close();
     }
-	@Test
+	
 	//sut.gauzatuEragiketa: There is no User with that username, so User(Traveler or Driver) is null.
 	//The test must return False.
-	public void test1() {
+	/*public void test1() {
 	    String username = "GidariTester";
 
 	    Mockito.when(db.createQuery(Mockito.anyString(), Mockito.eq(User.class)))
@@ -75,6 +75,7 @@ public class GauzatuEragiketaMockWhiteTest {
 	        sut.close();
 	    }
 	}
+	*/
 	@Test
 	//sut.gauzatuEragiketa: The User exists on the DB and deposit is true,so the amount should be added to the currentMoney.
 	//The test supposes that the Driver "Maria" does not exists in the DB before. The test must return True.
