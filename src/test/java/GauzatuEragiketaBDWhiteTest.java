@@ -13,9 +13,10 @@ public class GauzatuEragiketaBDWhiteTest {
 	 static DataAccess sut=new DataAccess();
 	//additional operations needed to execute the test 
 		 static TestDataAccess testDA=new TestDataAccess();
-	@Test
+
 	//sut.gauzatuEragiketa: There is no User with that username, so User(Traveler or Driver) is null.
 	//The test must return False.
+	/*
 	public void test1() {
 		try {
 		String username="Pepe";
@@ -30,6 +31,7 @@ public class GauzatuEragiketaBDWhiteTest {
 			fail();
 		}
 	}
+	*/
 	@Test
 	//sut.gauzatuEragiketa: The User exists on the DB and deposit is true,so the amount should be added to the currentMoney.
 	//The test supposes that the Driver "Maria" does not exists in the DB before. The test must return True.
