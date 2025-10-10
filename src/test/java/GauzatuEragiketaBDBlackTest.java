@@ -4,7 +4,7 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 import dataAccess.DataAccess;
-import domain.User;
+
 import testOperations.TestDataAccess;
 
 public class GauzatuEragiketaBDBlackTest {
@@ -83,7 +83,7 @@ public class GauzatuEragiketaBDBlackTest {
 			
 		        }
 	}
-	/*
+	
 	@Test
 	//sut.gauzatuEragiketa: The user(null) does not exists in DB.
 	//The transaction should be unsuccesful.
@@ -102,8 +102,8 @@ public class GauzatuEragiketaBDBlackTest {
 			
 		}
 	}
-	*/
-	/*
+	
+	
 	@Test
 	//sut.gauzatuEragiketa: The user(TestU) does not exists in DB.
 	//The transaction should be unsuccesful.
@@ -121,7 +121,7 @@ public class GauzatuEragiketaBDBlackTest {
 			
 		}
 	}
-	*/
+	
 	@Test
 	//sut.gauzatuEragiketa: The user("TestU")exists in DB. However, the amount is negative.
 	//The transaction should be unsuccesful.
