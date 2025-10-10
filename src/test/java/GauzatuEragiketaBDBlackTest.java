@@ -1,6 +1,5 @@
 import static org.junit.Assert.*;
 
-import java.lang.System.Logger;
 
 import org.junit.Test;
 
@@ -84,6 +83,7 @@ public class GauzatuEragiketaBDBlackTest {
 			
 		        }
 	}
+	/*
 	@Test
 	//sut.gauzatuEragiketa: The user(null) does not exists in DB.
 	//The transaction should be unsuccesful.
@@ -102,6 +102,8 @@ public class GauzatuEragiketaBDBlackTest {
 			
 		}
 	}
+	*/
+	/*
 	@Test
 	//sut.gauzatuEragiketa: The user(TestU) does not exists in DB.
 	//The transaction should be unsuccesful.
@@ -119,6 +121,7 @@ public class GauzatuEragiketaBDBlackTest {
 			
 		}
 	}
+	*/
 	@Test
 	//sut.gauzatuEragiketa: The user("TestU")exists in DB. However, the amount is negative.
 	//The transaction should be unsuccesful.

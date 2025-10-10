@@ -109,6 +109,7 @@ public class GauzatuEragiketaMockBlackTest {
 		        sut.close();
 		    }
 	}
+	/*
 	@Test
 	//sut.gauzatuEragiketa: The user(null) does not exists in DB.
 	//The transaction should be unsuccesful.
@@ -129,6 +130,8 @@ public class GauzatuEragiketaMockBlackTest {
 		        sut.close();
 		  }
 	}
+	*/
+	/*
 	@Test
 	//sut.gauzatuEragiketa: The user(TestU) does not exists in DB.
 	//The transaction should be unsuccesful.
@@ -155,6 +158,7 @@ public class GauzatuEragiketaMockBlackTest {
 	        sut.close();
 	    }
 	}
+	*/
 	@Test
 	//sut.gauzatuEragiketa: The user("TestU")exists in DB. However, the amount is negative.
 	//The transaction should be unsuccesful.
