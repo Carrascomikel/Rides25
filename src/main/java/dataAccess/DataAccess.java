@@ -1,4 +1,5 @@
 
+
 package dataAccess;
 
 import java.io.File;
@@ -42,11 +43,11 @@ public class DataAccess {
 	public DataAccess() {
 		if (c.isDatabaseInitialized()) {
 			String fileName = c.getDbFilename();
-			Path pathToDelete=(Path) Paths.get(fileName);
+			Path pathToDelete=Paths.get(fileName);
 			try {
 				Files.delete((java.nio.file.Path)pathToDelete);
-				Path tempPathToDelete=(Path)Paths.get(fileName+"$");
-				Files.deleteIfExists((java.nio.file.Path)tempPathToDelete);
+				Path tempPathToDelete=Paths.get(fileName+"$");
+				Files.deleteIfExists(tempPathToDelete);
 				 logger.info("File deleted");
 			}catch(IOException e) {
 				logger.info("Operation failed:"+e.getMessage());
@@ -662,17 +663,7 @@ public class DataAccess {
 
 			for (Booking booking : ride.getBookings()) {
 				if (booking.getStatus().equals("Accepted") || booking.getStatus().equals("NotDefined")) {
-					double price = booking.prezioaKalkulatu();
-					Traveler traveler = booking.getTraveler();
-					double frozenMoney = traveler.getIzoztatutakoDirua();
-					traveler.setIzoztatutakoDirua(frozenMoney - price);
-
-					double money = traveler.getMoney();
-					traveler.setMoney(money + price);
-					db.merge(traveler);
-					db.getTransaction().commit();
-					addMovement(traveler, "BookDeny", price);
-					db.getTransaction().begin();
+					acceptOrNotdefined(booking);
 				}
 				booking.setStatus("Rejected");
 				db.merge(booking);
@@ -682,11 +673,28 @@ public class DataAccess {
 
 			db.getTransaction().commit();
 		} catch (Exception e) {
-			if (db.getTransaction().isActive()) {
-				db.getTransaction().rollback();
-			}
-			e.printStackTrace();
+			salbuespenaCancelRide(e);
 		}
+	}
+	public void acceptOrNotdefined(Booking booking) {
+		double price = booking.prezioaKalkulatu();
+		Traveler traveler = booking.getTraveler();
+		double frozenMoney = traveler.getIzoztatutakoDirua();
+		traveler.setIzoztatutakoDirua(frozenMoney - price);
+
+		double money = traveler.getMoney();
+		traveler.setMoney(money + price);
+		db.merge(traveler);
+		db.getTransaction().commit();
+		addMovement(traveler, "BookDeny", price);
+		db.getTransaction().begin();
+	}
+	public void salbuespenaCancelRide(Exception e) {
+		if (db.getTransaction().isActive()) {
+			db.getTransaction().rollback();
+		}
+		e.printStackTrace();
+	
 	}
 
 	public List<Ride> getRidesByDriver(String username) {
@@ -952,41 +960,39 @@ public class DataAccess {
 			db.getTransaction().begin();
 
 			boolean alertFound = false;
-			TypedQuery<Alert> alertQuery = db.createQuery("SELECT a FROM Alert a WHERE a.traveler.username = :username",
-					Alert.class);
-			alertQuery.setParameter("username", username);
-			List<Alert> alerts = alertQuery.getResultList();
+			
+			List<Alert> alerts =getAlertsByUsername(username);
 
 			TypedQuery<Ride> rideQuery = db
 					.createQuery("SELECT r FROM Ride r WHERE r.date > CURRENT_DATE AND r.active = true", Ride.class);
 			List<Ride> rides = rideQuery.getResultList();
 
-			for (Alert alert : alerts) {
-				boolean found = false;
-				for (Ride ride : rides) {
-					if (UtilDate.datesAreEqualIgnoringTime(ride.getDate(), alert.getDate())
-							&& ride.getFrom().equals(alert.getFrom()) && ride.getTo().equals(alert.getTo())
-							&& ride.getnPlaces() > 0) {
-						alert.setFound(true);
-						found = true;
-						if (alert.isActive())
-							alertFound = true;
-						break;
-					}
-				}
-				if (!found) {
-					alert.setFound(false);
-				}
-				db.merge(alert);
-			}
-
-			db.getTransaction().commit();
+			alertFound=alertenProzesaketa(alerts,rides);
 			return alertFound;
 		} catch (Exception e) {
 			e.printStackTrace();
 			db.getTransaction().rollback();
 			return false;
 		}
+	}
+	
+	public boolean alertenProzesaketa(List<Alert> alerts, List<Ride> rides) {
+	    boolean alertFound = false;
+	    for (Alert alert : alerts) {
+	        boolean found = findMatchingRide(alert, rides);
+	        alert.setFound(found);
+	        if (found && alert.isActive()) alertFound = true;
+	        db.merge(alert);
+	    }
+	    return alertFound;
+	}
+	public boolean findMatchingRide(Alert alert, List<Ride> rides) {
+	    for (Ride ride : rides) {
+	        if (UtilDate.datesAreEqualIgnoringTime(ride.getDate(), alert.getDate())
+					&& ride.getFrom().equals(alert.getFrom()) && ride.getTo().equals(alert.getTo())
+					&& ride.getnPlaces() > 0) return true;
+	    }
+	    return false;
 	}
 
 	public boolean createAlert(Alert alert) {
