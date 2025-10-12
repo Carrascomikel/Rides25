@@ -234,27 +234,42 @@ public class DataAccess {
 	 * @throws RideMustBeLaterThanTodayException if the ride date is before today
 	 * @throws RideAlreadyExistException         if the same ride already exists for
 	 *                                           the driver
+	 * @deprecated Use {@link #createRide(RideRequest)} instead
 	 */
 	public Ride createRide(String from, String to, Date date, int nPlaces, float price, String driverName)
 			throws RideAlreadyExistException, RideMustBeLaterThanTodayException {
+				return createRide(new RideRequest(from, to, date, nPlaces, price, driverName));
+			}
+	/**
+	 * This method creates a ride for a driver
+	 * @param ridereq TODO
+	 * @param driverEmail to which ride is added
+	 * 
+	 * @return the created ride, or null, or an exception
+	 * @throws RideMustBeLaterThanTodayException if the ride date is before today
+	 * @throws RideAlreadyExistException         if the same ride already exists for
+	 *                                           the driver
+	 */
+	public Ride createRide(RideRequest ridereq)
+			throws RideAlreadyExistException, RideMustBeLaterThanTodayException {
 		logger.info(
-				">> DataAccess: createRide=> from= " + from + " to= " + to + " driver=" + driverName + " date " + date);
-		if (driverName==null) return null;
+				">> DataAccess: createRide=> from= " + ridereq.getFrom() + " to= " + ridereq.getTo() + " driver=" + ridereq.getDriverName() + " date " + ridereq.getDate());
+		if (ridereq.getDriverName()==null) return null;
 		try {
-			if (new Date().compareTo(date) > 0) {
+			if (new Date().compareTo(ridereq.getDate()) > 0) {
 				logger.info("ppppp");
 				throw new RideMustBeLaterThanTodayException(
 						ResourceBundle.getBundle("Etiquetas").getString("CreateRideGUI.ErrorRideMustBeLaterThanToday"));
 			}
 
 			db.getTransaction().begin();
-			Driver driver = db.find(Driver.class, driverName);
-			if (driver.doesRideExists(from, to, date)) {
+			Driver driver = db.find(Driver.class, ridereq.getDriverName());
+			if (driver.doesRideExists(ridereq.getFrom(), ridereq.getTo(), ridereq.getDate())) {
 				db.getTransaction().commit();
 				throw new RideAlreadyExistException(
 						ResourceBundle.getBundle("Etiquetas").getString("DataAccess.RideAlreadyExist"));
 			}
-			Ride ride = driver.addRide(from, to, date, nPlaces, price);
+			Ride ride = driver.addRide(ridereq.getFrom(), ridereq.getTo(), ridereq.getDate(), ridereq.getnPlaces(), ridereq.getPrice());
 			// next instruction can be obviated
 			db.persist(driver);
 			db.getTransaction().commit();
@@ -530,43 +545,38 @@ public class DataAccess {
 		}
 	}
 
+	private Booking bookingErazagutu(Ride ride, Traveler traveler, int seats, double desk) {
+		Booking b= new Booking(ride, traveler, seats);
+		b.setTraveler(traveler);
+		b.setDeskontua(desk);
+		return b;
+	}
+	private Traveler travelerAldaketak(Traveler t, Booking b, double rideprice, double balance) {
+		t.addBookedRide(b);
+		t.setMoney(balance-rideprice);
+		t.setIzoztatutakoDirua(t.getIzoztatutakoDirua() + rideprice);
+		return t;
+	}
+
 	public boolean bookRide(String username, Ride ride, int seats, double desk) {
 		try {
-			db.getTransaction().begin();
-
-			Traveler traveler = getTraveler(username);
-			if (traveler == null) {
-				return false;
-			}
-
-			if (ride.getnPlaces() < seats) {
-				return false;
-			}
-
-			double ridePriceDesk = (ride.getPrice() - desk) * seats;
-			double availableBalance = traveler.getMoney();
-			if (availableBalance < ridePriceDesk) {
-				return false;
-			}
-
-			Booking booking = new Booking(ride, traveler, seats);
-			booking.setTraveler(traveler);
-			booking.setDeskontua(desk);
-			db.persist(booking);
-
-			ride.setnPlaces(ride.getnPlaces() - seats);
-			traveler.addBookedRide(booking);
-			traveler.setMoney(availableBalance - ridePriceDesk);
-			traveler.setIzoztatutakoDirua(traveler.getIzoztatutakoDirua() + ridePriceDesk);
-			db.merge(ride);
-			db.merge(traveler);
-			db.getTransaction().commit();
-			return true;
+		    db.getTransaction().begin();
+		    Traveler t = getTraveler(username);
+		    if (t == null || ride.getnPlaces() < seats) return false;
+		    double price = (ride.getPrice() - desk) * seats;
+		    if (t.getMoney() < price) return false;
+		    Booking b = bookingErazagutu(ride, t, seats, desk);
+		    db.persist(b);
+		    ride.setnPlaces(ride.getnPlaces() - seats);
+		    travelerAldaketak(t, b, price, t.getMoney());
+		    db.merge(ride); db.merge(t);
+		    db.getTransaction().commit();
+		    return true;
 		} catch (Exception e) {
-			e.printStackTrace();
-			db.getTransaction().rollback();
-			return false;
+		    e.printStackTrace(); db.getTransaction().rollback(); 
+		    return false;
 		}
+
 	}
 
 	public List<Movement> getAllMovements(User user) {
@@ -581,38 +591,27 @@ public class DataAccess {
 		db.getTransaction().commit();
 		return trav.getBookedRides();
 	}
+	private <T> void updateEntity(T entity) {
+	    try {
+	        db.getTransaction().begin();
+	        db.merge(entity);
+	        db.getTransaction().commit();
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        if (db.getTransaction().isActive()) db.getTransaction().rollback();
+	    }
+	}
 
 	public void updateTraveler(Traveler traveler) {
-		try {
-			db.getTransaction().begin();
-			db.merge(traveler);
-			db.getTransaction().commit();
-		} catch (Exception e) {
-			e.printStackTrace();
-			db.getTransaction().rollback();
-		}
+	    updateEntity(traveler);
 	}
 
 	public void updateDriver(Driver driver) {
-		try {
-			db.getTransaction().begin();
-			db.merge(driver);
-			db.getTransaction().commit();
-		} catch (Exception e) {
-			e.printStackTrace();
-			db.getTransaction().rollback();
-		}
+	    updateEntity(driver);
 	}
 
 	public void updateUser(User user) {
-		try {
-			db.getTransaction().begin();
-			db.merge(user);
-			db.getTransaction().commit();
-		} catch (Exception e) {
-			e.printStackTrace();
-			db.getTransaction().rollback();
-		}
+	    updateEntity(user);
 	}
 
 	public List<Booking> getPastBookedRides(String username) {
@@ -624,16 +623,8 @@ public class DataAccess {
 	}
 
 	public void updateBooking(Booking booking) {
-		try {
-			db.getTransaction().begin();
-			db.merge(booking);
-			db.getTransaction().commit();
-		} catch (Exception e) {
-			e.printStackTrace();
-			db.getTransaction().rollback();
-		}
+	    updateEntity(booking);
 	}
-
 	public List<Booking> getBookingFromDriver(String username) {
 		try {
 			db.getTransaction().begin();
@@ -768,14 +759,7 @@ public class DataAccess {
 	}
 
 	public void updateComplaint(Complaint erreklamazioa) {
-		try {
-			db.getTransaction().begin();
-			db.merge(erreklamazioa);
-			db.getTransaction().commit();
-		} catch (Exception e) {
-			e.printStackTrace();
-			db.getTransaction().rollback();
-		}
+	    updateEntity(erreklamazioa);
 	}
 
 	public Car getKotxeByMatrikula(String matrikula) {
@@ -823,15 +807,9 @@ public class DataAccess {
 		}
 	}
 
+
 	public void updateDiscount(Discount dis) {
-		try {
-			db.getTransaction().begin();
-			db.merge(dis);
-			db.getTransaction().commit();
-		} catch (Exception e) {
-			e.printStackTrace();
-			db.getTransaction().rollback();
-		}
+		updateEntity(dis);
 	}
 
 	public Discount getDiscount(String kodea) {
@@ -867,45 +845,59 @@ public class DataAccess {
 		return query.getResultList();
 	}
 
-	public void deleteUser(User us) {
-		try {
-			if (us.getMota().equals("Driver")) {
-				List<Ride> rl = getRidesByDriver(us.getUsername());
-				if (rl != null) {
-					for (Ride ri : rl) {
-						cancelRide(ri);
-					}
-				}
-				Driver d = getDriver(us.getUsername());
-				List<Car> cl = d.getCars();
-				if (cl != null) {
-					for (int i = cl.size() - 1; i >= 0; i--) {
-						Car ci = cl.get(i);
-						deleteCar(ci);
-					}
-				}
-			} else {
-				List<Booking> lb = getBookedRides(us.getUsername());
-				if (lb != null) {
-					for (Booking li : lb) {
-						li.setStatus("Rejected");
-						li.getRide().setnPlaces(li.getRide().getnPlaces() + li.getSeats());
-					}
-				}
-				List<Alert> la = getAlertsByUsername(us.getUsername());
-				if (la != null) {
-					for (Alert lx : la) {
-						deleteAlert(lx.getAlertNumber());
-					}
-				}
-			}
-			db.getTransaction().begin();
-			us = db.merge(us);
-			db.remove(us);
-			db.getTransaction().commit();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	public void deleteUser(User erabiltzailea) {
+	    try {
+	        db.getTransaction().begin();
+
+	        if (erabiltzailea.getMota().equals("Driver")) {
+	            gidariaEzabatu(erabiltzailea);
+	        } else {
+	            bidaiariaEzabatu(erabiltzailea);
+	        }
+
+	        erabiltzailea = db.merge(erabiltzailea);
+	        db.remove(erabiltzailea);
+
+	        db.getTransaction().commit();
+	    } catch (Exception e) {
+	        if (db.getTransaction().isActive()) db.getTransaction().rollback();
+	        e.printStackTrace();
+	    }
+	}
+
+	private void gidariaEzabatu(User erabiltzailea) {
+	    List<Ride> ibilaldiak = getRidesByDriver(erabiltzailea.getUsername());
+	    if (ibilaldiak != null) {
+	        for (Ride ibilaldia : ibilaldiak) {
+	            cancelRide(ibilaldia);
+	        }
+	    }
+
+	    Driver gidaria = getDriver(erabiltzailea.getUsername());
+	    if (gidaria != null && gidaria.getCars() != null) {
+	        for (Car autoa : new ArrayList<>(gidaria.getCars())) {
+	            deleteCar(autoa);
+	        }
+	    }
+	}
+
+	private void bidaiariaEzabatu(User erabiltzailea) {
+	    List<Booking> erreserbak = getBookedRides(erabiltzailea.getUsername());
+	    if (erreserbak != null) {
+	        for (Booking erreserba : erreserbak) {
+	            erreserba.setStatus("Rejected");
+	            Ride ibilaldia = erreserba.getRide();
+	            ibilaldia.setnPlaces(ibilaldia.getnPlaces() + erreserba.getSeats());
+	            db.merge(ibilaldia);
+	        }
+	    }
+
+	    List<Alert> alertak = getAlertsByUsername(erabiltzailea.getUsername());
+	    if (alertak != null) {
+	        for (Alert alerta : alertak) {
+	            deleteAlert(alerta.getAlertNumber());
+	        }
+	    }
 	}
 
 	public List<Alert> getAlertsByUsername(String username) {
@@ -944,15 +936,7 @@ public class DataAccess {
 	}
 
 	public void updateAlert(Alert alert) {
-		try {
-			db.getTransaction().begin();
-			db.merge(alert);
-			db.getTransaction().commit();
-		} catch (Exception e) {
-			e.printStackTrace();
-			db.getTransaction().rollback();
-		}
-
+	    updateEntity(alert);
 	}
 
 	public boolean updateAlertaAurkituak(String username) {
