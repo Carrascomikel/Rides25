@@ -123,26 +123,26 @@ public class DataAccess {
 			Ride ride2 = driver1.getCreatedRides().get(1);
 			Ride ride3 = driver1.getCreatedRides().get(2);
 			Ride ride4 = driver1.getCreatedRides().get(3);
-			Ride ride5 = driver2.getCreatedRides().get(0);
+			
 
 			Booking book1 = new Booking(ride4, traveler1, 2);
 			Booking book2 = new Booking(ride1, traveler1, 2);
 			Booking book4 = new Booking(ride3, traveler1, 1);
 			Booking book3 = new Booking(ride2, traveler2, 2);
-			Booking book5 = new Booking(ride5, traveler1, 1);
+			
 			
 			final String ap="Accepted";
 			book1.setStatus(ap);
 			book2.setStatus("Rejected");
 			book3.setStatus(ap);
 			book4.setStatus(ap);
-			book5.setStatus(ap);
+			
 
 			db.persist(book1);
 			db.persist(book2);
 			db.persist(book3);
 			db.persist(book4);
-			db.persist(book5);
+			
 			
 			final String bf="BookFreeze";
 			final String dep="Deposit";
@@ -166,7 +166,7 @@ public class DataAccess {
 			traveler1.addBookedRide(book2);
 			traveler2.addBookedRide(book3);
 			traveler1.addBookedRide(book4);
-			traveler1.addBookedRide(book5);
+			
 			db.merge(traveler1);
 
 			Car c1 = new Car("1234ABC", "Renault", 5);

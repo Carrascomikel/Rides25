@@ -2,13 +2,14 @@ package businessLogic;
 
 import java.util.Date;
 
+
 import java.util.List;
 
 
 import domain.Ride;
 import domain.Traveler;
 import domain.User;
-
+import domain.ExtendedIterator;
 import domain.Alert;
 import domain.Booking;
 import domain.Car;
@@ -180,5 +181,8 @@ public interface BLFacade {
 	public boolean deleteAlert(int alertNumber);
 
 	public Complaint getComplaintsByBook(Booking bo);
+	
+	@WebMethod 
+	public ExtendedIterator<String> getDepartingCitiesIterator();
 
 }

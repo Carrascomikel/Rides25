@@ -1,6 +1,7 @@
 package businessLogic;
 
 import java.util.Date;
+
 import java.util.List;
 
 import javax.jws.WebMethod;
@@ -18,6 +19,8 @@ import domain.Booking;
 import domain.Car;
 import domain.Discount;
 import domain.Driver;
+import domain.ExtendedIterator;
+import domain.ExtendedIteratorImplementation;
 import domain.Complaint;
 import domain.Movement;
 import exceptions.RideMustBeLaterThanTodayException;
@@ -455,6 +458,11 @@ public class BLFacadeImplementation implements BLFacade {
 		Complaint er = dbManager.getComplaintsByBook(book);
 		dbManager.close();
 		return er;
+	}
+	
+	@Override
+	public ExtendedIterator<String> getDepartingCitiesIterator() {
+		return new ExtendedIteratorImplementation<String>(this.getDepartCities());
 	}
 
 }
